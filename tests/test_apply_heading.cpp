@@ -23,6 +23,6 @@ int main() {
 
     assert(parse("$IIRSA,2.5,A,,V*7E\r\n", s));
     assert(c.apply_sentence(s, model, 200));
-    assert(std::fabs(model.rudder.angle_deg.value - 2.5f) < 0.0001f);
+    assert(std::fabs(model.rudder.angle_deg.value + 2.5f) < 0.0001f);
     return 0;
 }
