@@ -5,13 +5,11 @@ option(PYPILOT_NMEA0183_CONNECTOR_BUILD_TESTS "Build tests" ON)
 option(PYPILOT_NMEA0183_CONNECTOR_BUILD_EXAMPLES "Build examples" ON)
 
 set(PYPILOT_DATA_MODEL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../pypilot-data-model/src" CACHE PATH "Path to pypilot-data-model src include dir")
-set(PYPILOT_ALGORITHMS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../pypilot-algorithms/src" CACHE PATH "Path to pypilot-algorithms src include dir")
 
 add_library(pypilot_nmea0183_connector INTERFACE)
 target_include_directories(pypilot_nmea0183_connector INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}/src
   ${PYPILOT_DATA_MODEL_DIR}
-  ${PYPILOT_ALGORITHMS_DIR}
 )
 target_compile_features(pypilot_nmea0183_connector INTERFACE cxx_std_11)
 
