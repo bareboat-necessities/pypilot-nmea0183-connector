@@ -15,13 +15,9 @@ jobs:
         with:
           repository: bareboat-necessities/pypilot-data-model
           path: pypilot-data-model
-      - uses: actions/checkout@v4
-        with:
-          repository: bareboat-necessities/pypilot-algorithms
-          path: pypilot-algorithms
       - name: Configure
         working-directory: pypilot-nmea0183-connector
-        run: cmake -S . -B build -DPYPILOT_DATA_MODEL_DIR=${{ github.workspace }}/pypilot-data-model/src -DPYPILOT_ALGORITHMS_DIR=${{ github.workspace }}/pypilot-algorithms/src
+        run: cmake -S . -B build
       - name: Build
         working-directory: pypilot-nmea0183-connector
         run: cmake --build build --parallel
