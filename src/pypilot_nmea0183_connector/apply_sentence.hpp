@@ -1,10 +1,21 @@
 #pragma once
 
 #include <pypilot_data_model.hpp>
-#include <pypilot_algorithms.hpp>
 #include "parse_helpers.hpp"
 
 namespace pypilot_nmea0183_connector {
+
+inline float wrap_360_deg(float angle_deg) {
+    while (angle_deg >= 360.0f) angle_deg -= 360.0f;
+    while (angle_deg < 0.0f) angle_deg += 360.0f;
+    return angle_deg;
+}
+
+inline float wrap_180_deg(float angle_deg) {
+    angle_deg = wrap_360_deg(angle_deg + 180.0f) - 180.0f;
+    if (angle_deg <= -180.0f) angle_deg += 360.0f;
+    return angle_deg;
+}
 
 template<typename Real = float>
 class Nmea0183Connector {
@@ -45,7 +56,7 @@ private:
         if (parse_lat_lon(s.field(2), s.field(3), lat)) model.navigation.gps.fix_lat_deg.set(static_cast<Real>(lat), now_us);
         if (parse_lat_lon(s.field(4), s.field(5), lon)) model.navigation.gps.fix_lon_deg.set(static_cast<Real>(lon), now_us);
         if (parse_real(s.field(6), sog)) model.navigation.gps.speed_kn.set(static_cast<Real>(sog), now_us);
-        if (parse_real(s.field(7), cog)) model.navigation.gps.track_deg.set(static_cast<Real>(pypilot_algorithms::wrap_360_deg(cog)), now_us);
+        if (parse_real(s.field(7), cog)) model.navigation.gps.track_deg.set(static_cast<Real>(wrap_360_deg(cog)), now_us);
         if (s.field_count >= 11) {
             float var = 0;
             if (parse_east_west_signed(s.field(9), s.field(10), var)) model.navigation.gps.declination_deg.set(static_cast<Real>(var), now_us);
@@ -67,7 +78,7 @@ private:
     bool apply_vtg(const NmeaSentence& s, Model& model, uint64_t now_us) {
         if (s.field_count < 7) { last_error_ = "short VTG"; return false; }
         float track = 0, speed = 0;
-        if (parse_real(s.field(0), track)) model.navigation.gps.track_deg.set(static_cast<Real>(pypilot_algorithms::wrap_360_deg(track)), now_us);
+        if (parse_real(s.field(0), track)) model.navigation.gps.track_deg.set(static_cast<Real>(wrap_360_deg(track)), now_us);
         if (parse_knots(s.field(4), s.field(5), speed)) model.navigation.gps.speed_kn.set(static_cast<Real>(speed), now_us);
         else if (parse_knots(s.field(6), s.field(7), speed)) model.navigation.gps.speed_kn.set(static_cast<Real>(speed), now_us);
         return true;
@@ -77,7 +88,7 @@ private:
     bool apply_hdt(const NmeaSentence& s, Model& model, uint64_t now_us) {
         float heading = 0;
         if (!parse_real(s.field(0), heading)) { last_error_ = "bad HDT"; return false; }
-        model.imu.heading_deg.set(static_cast<Real>(pypilot_algorithms::wrap_360_deg(heading)), now_us);
+        model.imu.heading_deg.set(static_cast<Real>(wrap_360_deg(heading)), now_us);
         return true;
     }
 
@@ -85,7 +96,7 @@ private:
     bool apply_hdm(const NmeaSentence& s, Model& model, uint64_t now_us) {
         float heading = 0;
         if (!parse_real(s.field(0), heading)) { last_error_ = "bad HDM"; return false; }
-        model.imu.heading_deg.set(static_cast<Real>(pypilot_algorithms::wrap_360_deg(heading)), now_us);
+        model.imu.heading_deg.set(static_cast<Real>(wrap_360_deg(heading)), now_us);
         return true;
     }
 
@@ -93,7 +104,7 @@ private:
     bool apply_hdg(const NmeaSentence& s, Model& model, uint64_t now_us) {
         float heading = 0;
         if (!parse_real(s.field(0), heading)) { last_error_ = "bad HDG"; return false; }
-        model.imu.heading_deg.set(static_cast<Real>(pypilot_algorithms::wrap_360_deg(heading)), now_us);
+        model.imu.heading_deg.set(static_cast<Real>(wrap_360_deg(heading)), now_us);
         float var = 0;
         if (s.field_count >= 5 && parse_east_west_signed(s.field(3), s.field(4), var)) {
             model.navigation.gps.declination_deg.set(static_cast<Real>(var), now_us);
@@ -107,10 +118,10 @@ private:
         float angle = 0, speed = 0;
         if (!parse_real(s.field(0), angle) || !parse_knots(s.field(2), s.field(3), speed)) { last_error_ = "bad MWV"; return false; }
         if (s.field(1)[0] == 'T') {
-            model.wind.truewind.direction_deg.set(static_cast<Real>(pypilot_algorithms::wrap_180_deg(angle)), now_us);
+            model.wind.truewind.direction_deg.set(static_cast<Real>(wrap_180_deg(angle)), now_us);
             model.wind.truewind.speed_kn.set(static_cast<Real>(speed), now_us);
         } else {
-            model.wind.apparent.direction_deg.set(static_cast<Real>(pypilot_algorithms::wrap_180_deg(angle)), now_us);
+            model.wind.apparent.direction_deg.set(static_cast<Real>(wrap_180_deg(angle)), now_us);
             model.wind.apparent.speed_kn.set(static_cast<Real>(speed), now_us);
         }
         return true;
@@ -178,10 +189,10 @@ private:
         }
         float track = 0;
         if (s.field_count >= 14 && parse_real(s.field(11), track)) {
-            model.navigation.apb.track_deg.set(static_cast<Real>(pypilot_algorithms::wrap_360_deg(track)), now_us);
+            model.navigation.apb.track_deg.set(static_cast<Real>(wrap_360_deg(track)), now_us);
             any = true;
         } else if (s.field_count >= 12 && parse_real(s.field(9), track)) {
-            model.navigation.apb.track_deg.set(static_cast<Real>(pypilot_algorithms::wrap_360_deg(track)), now_us);
+            model.navigation.apb.track_deg.set(static_cast<Real>(wrap_360_deg(track)), now_us);
             any = true;
         }
         if (!any) last_error_ = "bad APB";
