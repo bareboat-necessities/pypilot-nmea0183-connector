@@ -29,5 +29,8 @@ int main() {
     assert(c.apply_sentence(s, model, 200));
     assert(std::fabs(model.navigation.gps.track_deg.value - 54.7f) < 0.0001f);
     assert(std::fabs(model.navigation.gps.speed_kn.value - 5.5f) < 0.0001f);
+
+    assert(parse("$GPRMC,123519,V,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*7D\r\n", s));
+    assert(!c.apply_sentence(s, model, 300));
     return 0;
 }
