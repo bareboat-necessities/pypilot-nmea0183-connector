@@ -28,5 +28,7 @@ int main() {
     assert(model.navigation.apb.last_update_us == 100);
     assert(c.last_apb_mode() == AutopilotMode::compass);
     assert(std::strcmp(c.last_apb_sender_id(), "GP") == 0);
+    assert(model.navigation.apb.mode_hint.value == AutopilotMode::compass);
+    assert(std::strcmp(model.navigation.apb.sender_id, "GP") == 0);
     return 0;
 }
