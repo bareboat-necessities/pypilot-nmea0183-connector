@@ -55,7 +55,7 @@ pypilot-specific compatibility details:
 
 ```text
 RSA input is sign-inverted into pypilot rudder angle.
-APB XTE is clamped to +/-0.15 nmi and remembers sender ID plus compass/gps mode hint.
+APB XTE is clamped to +/-0.15 nmi and writes mode_hint plus sender_id into model.navigation.apb.
 apply_sentence has a source-aware overload for serial/tcp/gpsd/signalk provenance.
 ```
 
@@ -64,7 +64,7 @@ apply_sentence has a source-aware overload for serial/tcp/gpsd/signalk provenanc
 Generic helpers:
 
 ```text
-HDT, HDM, MWV, RSA, VHW
+HDT, HDM, MWV, RSA, VHW, RMC
 ```
 
 pypilot-style output helpers:
@@ -75,6 +75,7 @@ APROT heading-rate
 APHDM heading
 APMWV apparent/true wind
 APRSA rudder with pypilot sign convention
+APRMC / GPRMC-compatible RMC output
 ```
 
 ## License
