@@ -1,0 +1,30 @@
+name: linux
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: pypilot-nmea0183-connector
+      - uses: actions/checkout@v4
+        with:
+          repository: bareboat-necessities/pypilot-data-model
+          path: pypilot-data-model
+      - uses: actions/checkout@v4
+        with:
+          repository: bareboat-necessities/pypilot-algorithms
+          path: pypilot-algorithms
+      - name: Configure
+        working-directory: pypilot-nmea0183-connector
+        run: cmake -S . -B build -DPYPILOT_DATA_MODEL_DIR=${{ github.workspace }}/pypilot-data-model/src -DPYPILOT_ALGORITHMS_DIR=${{ github.workspace }}/pypilot-algorithms/src
+      - name: Build
+        working-directory: pypilot-nmea0183-connector
+        run: cmake --build build --parallel
+      - name: Test
+        working-directory: pypilot-nmea0183-connector
+        run: ctest --test-dir build --output-on-failure
