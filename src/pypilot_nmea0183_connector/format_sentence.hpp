@@ -104,62 +104,46 @@ inline size_t make_rot(char* out, size_t out_size, float rate_deg_min, const cha
     return make_sentence(out, out_size, body);
 }
 
-inline void format_lat_lon_ddmm(char* out, size_t out_size, float degrees_value, bool latitude, char& hemi) {
+inline void format_lat_lon_ddmm(char* out, size_t out_size, float degrees_value, char positive_hemi, char negative_hemi, char& hemi) {
     if (!out || out_size == 0) return;
     float a = degrees_value < 0.0f ? -degrees_value : degrees_value;
     int deg_i = static_cast<int>(a);
     float minutes = (a - static_cast<float>(deg_i)) * 60.0f;
-    hemi = latitude ? (degrees_value >= 0.0f ? 'N' : 'S') : (degrees_value >= 0.0f ? 'E' : 'W');
-    if (latitude) snprintf(out, out_size, "%02d%07.4f", deg_i, static_cast<double>(minutes));
-    else snprintf(out, out_size, "%03d%07.4f", deg_i, static_cast<double>(minutes));
+    hemi = degrees_value >= 0.0f ? positive_hemi : negative_hemi;
+    snprintf(out, out_size, "%02d%07.4f", deg_i, static_cast<double>(minutes));
 }
 
 inline size_t make_rmc(char* out,
                        size_t out_size,
+                       const char* sentence_id,
                        const char* utc_time,
                        bool valid,
                        float lat_deg,
                        float lon_deg,
                        float speed_kn,
                        float track_deg,
-                       const char* date_ddmmyy,
-                       float declination_deg = 0.0f,
-                       bool has_declination = false,
-                       const char* talker = "GP") {
+                       const char* date_ddmmyy) {
     char lat[20];
     char lon[20];
     char speed[20];
     char track[20];
-    char decl[20];
     char body[128];
     char ns = 'N';
     char ew = 'E';
-    format_lat_lon_ddmm(lat, sizeof(lat), lat_deg, true, ns);
-    format_lat_lon_ddmm(lon, sizeof(lon), lon_deg, false, ew);
-    format_real(speed, sizeof(speed), speed_kn, 1);
-    format_real(track, sizeof(track), track_deg, 1);
-    char decl_ew = 'E';
-    const char* decl_s = "";
-    const char* decl_dir = "";
-    if (has_declination) {
-        float d = declination_deg;
-        decl_ew = d >= 0.0f ? 'E' : 'W';
-        if (d < 0.0f) d = -d;
-        format_real(decl, sizeof(decl), d, 1);
-        decl_s = decl;
-        decl_dir = decl_ew == 'E' ? "E" : "W";
-    }
-    snprintf(body, sizeof(body), "%sRMC,%s,%c,%s,%c,%s,%c,%s,%s,%s,%s,%s",
-             talker,
-             utc_time ? utc_time : "000000",
+    format_lat_lon_ddmm(lat, sizeof(lat), lat_deg, 'N', 'S', ns);
+    format_lat_lon_ddmm(lon, sizeof(lon), lon_deg, 'E', 'W', ew);
+    format_real(speed, sizeof(speed), speed_kn, 2);
+    float tr = track_deg > 0.0f ? track_deg : 360.0f + track_deg;
+    format_real(track, sizeof(track), tr, 2);
+    snprintf(body, sizeof(body), "%s,%s,%c,%s,%c,%s,%c,%s,%s,%s,,,A",
+             sentence_id ? sentence_id : "GPRMC",
+             utc_time ? utc_time : "000000.000",
              valid ? 'A' : 'V',
              lat, ns,
              lon, ew,
              speed,
              track,
-             date_ddmmyy ? date_ddmmyy : "010180",
-             decl_s,
-             decl_dir);
+             date_ddmmyy ? date_ddmmyy : "010180");
     return make_sentence(out, out_size, body);
 }
 
@@ -169,15 +153,13 @@ inline size_t make_pypilot_rmc(char* out,
                                const pypilot_data_model::DataModel<Real>& model,
                                const char* utc_time,
                                const char* date_ddmmyy,
-                               const char* talker = "AP") {
+                               const char* gps_id = "APRMC") {
     bool valid = model.navigation.gps.fix_lat_deg.valid && model.navigation.gps.fix_lon_deg.valid;
     float lat = static_cast<float>(model.navigation.gps.fix_lat_deg.value);
     float lon = static_cast<float>(model.navigation.gps.fix_lon_deg.value);
     float speed = model.navigation.gps.speed_kn.valid ? static_cast<float>(model.navigation.gps.speed_kn.value) : 0.0f;
     float track = model.navigation.gps.track_deg.valid ? static_cast<float>(model.navigation.gps.track_deg.value) : 0.0f;
-    bool has_decl = model.navigation.gps.declination_deg.valid;
-    float decl = has_decl ? static_cast<float>(model.navigation.gps.declination_deg.value) : 0.0f;
-    return make_rmc(out, out_size, utc_time, valid, lat, lon, speed, track, date_ddmmyy, decl, has_decl, talker);
+    return make_rmc(out, out_size, gps_id, utc_time, valid, lat, lon, speed, track, date_ddmmyy);
 }
 
 inline size_t make_pypilot_hdm(char* out, size_t out_size, float heading_lowpass_deg) {
