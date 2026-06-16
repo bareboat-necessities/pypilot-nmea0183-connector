@@ -4,12 +4,10 @@ project(pypilot_nmea0183_connector LANGUAGES CXX)
 option(PYPILOT_NMEA0183_CONNECTOR_BUILD_TESTS "Build tests" ON)
 option(PYPILOT_NMEA0183_CONNECTOR_BUILD_EXAMPLES "Build examples" ON)
 
-set(PYPILOT_DATA_MODEL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../pypilot-data-model/src" CACHE PATH "Path to pypilot-data-model src include dir")
-
 add_library(pypilot_nmea0183_connector INTERFACE)
 target_include_directories(pypilot_nmea0183_connector INTERFACE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
-  ${PYPILOT_DATA_MODEL_DIR}
+  src
+  ../pypilot-data-model/src
 )
 target_compile_features(pypilot_nmea0183_connector INTERFACE cxx_std_11)
 
@@ -30,7 +28,11 @@ if(PYPILOT_NMEA0183_CONNECTOR_BUILD_TESTS)
       test_apply_gps
       test_apply_wind
       test_apply_heading
-      test_format_sentence)
+      test_apply_water_lwy
+      test_apply_apb
+      test_apply_source
+      test_format_sentence
+      test_format_pypilot_outputs)
     add_executable(${test_name} tests/${test_name}.cpp)
     target_link_libraries(${test_name} PRIVATE pypilot_nmea0183_connector)
     add_test(NAME ${test_name} COMMAND ${test_name})
