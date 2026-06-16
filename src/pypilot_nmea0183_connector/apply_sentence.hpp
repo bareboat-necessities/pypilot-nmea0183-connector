@@ -260,7 +260,11 @@ private:
             any = true;
         }
         last_apb_mode_ = s.field(13)[0] == 'M' ? pypilot_data_model::AutopilotMode::compass : pypilot_data_model::AutopilotMode::gps;
+        model.navigation.apb.mode_hint.value = last_apb_mode_;
         remember_sender(s);
+        model.navigation.apb.sender_id[0] = last_apb_sender_id_[0];
+        model.navigation.apb.sender_id[1] = last_apb_sender_id_[1];
+        model.navigation.apb.sender_id[2] = '\0';
         set_source(model.navigation.apb.source, source);
         model.navigation.apb.last_update_us = now_us;
         if (!any) last_error_ = "bad APB";
