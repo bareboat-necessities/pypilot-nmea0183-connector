@@ -15,14 +15,10 @@ jobs:
         with:
           repository: bareboat-necessities/pypilot-data-model
           path: pypilot-data-model
-      - uses: actions/checkout@v4
-        with:
-          repository: bareboat-necessities/pypilot-algorithms
-          path: pypilot-algorithms
       - uses: arduino/setup-arduino-cli@v2
       - name: Install AVR core
         run: |
           arduino-cli core update-index
           arduino-cli core install arduino:avr
       - name: Compile NMEA connector example
-        run: arduino-cli compile --fqbn arduino:avr:mega --libraries pypilot-nmea0183-connector --libraries pypilot-data-model --libraries pypilot-algorithms pypilot-nmea0183-connector/examples/arduino/Nmea0183ConnectorExample
+        run: arduino-cli compile --fqbn arduino:avr:mega --libraries pypilot-nmea0183-connector --libraries pypilot-data-model pypilot-nmea0183-connector/examples/arduino/Nmea0183ConnectorExample
