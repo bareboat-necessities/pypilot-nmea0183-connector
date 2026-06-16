@@ -41,20 +41,40 @@ cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
 
-## Supported phase-0 input
+## Supported input
 
 ```text
 RMC, GGA, VTG
 HDT, HDM, HDG
 MWV, VWR, VWT
-VHW, RSA
+VHW, LWY, RSA
 APB, XTE
 ```
 
-## Supported phase-0 output
+pypilot-specific compatibility details:
+
+```text
+RSA input is sign-inverted into pypilot rudder angle.
+APB XTE is clamped to +/-0.15 nmi and remembers sender ID plus compass/gps mode hint.
+apply_sentence has a source-aware overload for serial/tcp/gpsd/signalk provenance.
+```
+
+## Supported output
+
+Generic helpers:
 
 ```text
 HDT, HDM, MWV, RSA, VHW
+```
+
+pypilot-style output helpers:
+
+```text
+APXDR pitch/roll
+APROT heading-rate
+APHDM heading
+APMWV apparent/true wind
+APRSA rudder with pypilot sign convention
 ```
 
 ## License
