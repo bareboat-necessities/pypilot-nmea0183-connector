@@ -22,6 +22,12 @@ inline void format_real(char* out, size_t out_size, float value, unsigned decima
 #endif
 }
 
+inline float format_wrap_360_deg(float angle_deg) {
+    while (angle_deg >= 360.0f) angle_deg -= 360.0f;
+    while (angle_deg < 0.0f) angle_deg += 360.0f;
+    return angle_deg;
+}
+
 inline size_t make_sentence(char* out, size_t out_size, const char* body, char start_char = '$') {
     if (!out || out_size == 0 || !body) return 0;
     uint8_t cs = nmea_checksum_body(body);
@@ -56,10 +62,10 @@ inline size_t make_mwv(char* out, size_t out_size, float angle_deg, float speed_
     return make_sentence(out, out_size, body);
 }
 
-inline size_t make_rsa(char* out, size_t out_size, float rudder_deg, const char* talker = "II") {
+inline size_t make_rsa(char* out, size_t out_size, float nmea_rudder_deg, const char* talker = "II") {
     char r[24];
     char body[80];
-    format_real(r, sizeof(r), rudder_deg, 1);
+    format_real(r, sizeof(r), nmea_rudder_deg, 1);
     snprintf(body, sizeof(body), "%sRSA,%s,A,,V", talker, r);
     return make_sentence(out, out_size, body);
 }
@@ -70,6 +76,42 @@ inline size_t make_vhw(char* out, size_t out_size, float water_speed_kn, const c
     format_real(s, sizeof(s), water_speed_kn, 1);
     snprintf(body, sizeof(body), "%sVHW,,,,,%s,N,,K", talker, s);
     return make_sentence(out, out_size, body);
+}
+
+inline size_t make_xdr_pitch(char* out, size_t out_size, float pitch_deg, const char* talker = "AP") {
+    char v[24];
+    char body[80];
+    format_real(v, sizeof(v), pitch_deg, 3);
+    snprintf(body, sizeof(body), "%sXDR,A,%s,D,PTCH", talker, v);
+    return make_sentence(out, out_size, body);
+}
+
+inline size_t make_xdr_roll(char* out, size_t out_size, float roll_deg, const char* talker = "AP") {
+    char v[24];
+    char body[80];
+    format_real(v, sizeof(v), roll_deg, 3);
+    snprintf(body, sizeof(body), "%sXDR,A,%s,D,ROLL", talker, v);
+    return make_sentence(out, out_size, body);
+}
+
+inline size_t make_rot(char* out, size_t out_size, float rate_deg_min, const char* talker = "AP") {
+    char v[24];
+    char body[80];
+    format_real(v, sizeof(v), rate_deg_min, 3);
+    snprintf(body, sizeof(body), "%sROT,%s,A", talker, v);
+    return make_sentence(out, out_size, body);
+}
+
+inline size_t make_pypilot_hdm(char* out, size_t out_size, float heading_lowpass_deg) {
+    return make_hdm(out, out_size, heading_lowpass_deg, "AP");
+}
+
+inline size_t make_pypilot_mwv(char* out, size_t out_size, float direction_deg, float speed_kn, bool apparent = true) {
+    return make_mwv(out, out_size, format_wrap_360_deg(direction_deg), speed_kn, apparent, "AP");
+}
+
+inline size_t make_pypilot_rsa(char* out, size_t out_size, float pypilot_rudder_deg) {
+    return make_rsa(out, out_size, -pypilot_rudder_deg, "AP");
 }
 
 } // namespace pypilot_nmea0183_connector
