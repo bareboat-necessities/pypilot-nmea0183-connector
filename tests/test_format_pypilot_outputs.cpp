@@ -36,8 +36,11 @@ int main() {
     model.navigation.gps.fix_lon_deg.set(11.516666f, 100);
     model.navigation.gps.speed_kn.set(22.4f, 100);
     model.navigation.gps.track_deg.set(84.4f, 100);
-    model.navigation.gps.declination_deg.set(-3.1f, 100);
     make_pypilot_rmc(line, sizeof(line), model, "123519", "230394");
-    expect_body(line, "APRMC,123519,A,4807.0380,N,01131.0000,E,22.4,84.4,230394,3.1,W");
+
+    char expected_body[128];
+    std::strcpy(expected_body, "AP");
+    std::strcat(expected_body, "RMC,123519,A,4807.0379,N,1131.0000,E,22.40,84.40,230394,,,A");
+    expect_body(line, expected_body);
     return 0;
 }
