@@ -32,7 +32,8 @@ if(PYPILOT_NMEA0183_CONNECTOR_BUILD_TESTS)
       test_apply_apb
       test_apply_source
       test_format_sentence
-      test_format_pypilot_outputs)
+      test_format_pypilot_outputs
+      test_optional_inputs)
     add_executable(${test_name} tests/${test_name}.cpp)
     target_link_libraries(${test_name} PRIVATE pypilot_nmea0183_connector)
     add_test(NAME ${test_name} COMMAND ${test_name})
