@@ -23,16 +23,14 @@ Use the same include on Linux and Arduino:
 
 ## Dependencies
 
-The connector expects these sibling projects or include paths:
+The connector expects this sibling project or include path:
 
 - `pypilot-data-model`
-- `pypilot-algorithms`
 
-For local CMake builds, defaults are:
+For local CMake builds, default is:
 
 ```text
 ../pypilot-data-model/src
-../pypilot-algorithms/src
 ```
 
 ## Build on Linux
