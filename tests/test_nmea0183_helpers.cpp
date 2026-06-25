@@ -1,6 +1,6 @@
 #include <cassert>
 #include <cmath>
-#include <pypilot_nmea0183_connector.hpp>
+#include <nmea0183_connector.hpp>
 
 using namespace nmea0183_connector;
 
