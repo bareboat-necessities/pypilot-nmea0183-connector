@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string.h>
-#include "checksum.hpp"
+#include "parse_helpers.hpp"
 #include "sentence.hpp"
 
 namespace pypilot_nmea0183_connector {
