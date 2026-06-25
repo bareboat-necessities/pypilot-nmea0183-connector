@@ -15,7 +15,7 @@ static bool parse(const char* line, NmeaSentence& s) {
 
 int main() {
     DataModel<> model;
-    Nmea0183Connector<> c;
+    Nmea0183RxConnector<> c;
     NmeaSentence s;
     assert(parse("$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A\r\n", s));
     assert(c.apply_sentence(s, model, 100));
