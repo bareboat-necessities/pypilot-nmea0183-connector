@@ -29,7 +29,7 @@ Internal source headers are intentionally coarse-grained:
 nmea0183_helpers.hpp       checksum and scalar/field parse helpers; no sentence dependency
 sentence_parser.hpp        NmeaSentence plus Nmea0183StreamParser
 apply_sentence_pypilot.hpp pypilot-data-model input applier
-format_sentence.hpp        NMEA output formatter
+sentence_formatter.hpp     NMEA output formatter
 ```
 
 All supported input sentences are applied through `Nmea0183Connector::apply_sentence()`; there is no separate optional-input applier.
@@ -83,15 +83,15 @@ Generic helpers:
 HDT, HDM, MWV, RSA, VHW, RMC
 ```
 
-pypilot-style output helpers:
+AP/pypilot-style output helpers use the `make_ap_` prefix:
 
 ```text
-APXDR pitch/roll
-APROT heading-rate
-APHDM heading
-APMWV apparent/true wind
-APRSA rudder with pypilot sign convention
-APRMC / GPRMC-compatible RMC output
+make_xdr_pitch / make_xdr_roll -> APXDR pitch/roll
+make_rot                       -> APROT heading-rate
+make_ap_hdm                    -> APHDM heading
+make_ap_mwv                    -> APMWV apparent/true wind
+make_ap_rsa                    -> APRSA rudder with pypilot sign convention
+make_ap_rmc                    -> APRMC / GPRMC-compatible RMC output
 ```
 
 ## License
