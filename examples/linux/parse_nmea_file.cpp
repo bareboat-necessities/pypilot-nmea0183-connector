@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
 
     pypilot_data_model::DataModel<> model;
     pypilot_nmea0183_connector::Nmea0183StreamParser parser;
-    pypilot_nmea0183_connector::Nmea0183Connector<> connector;
+    pypilot_nmea0183_connector::Nmea0183RxConnector<> connector;
     pypilot_nmea0183_connector::NmeaSentence sentence;
 
     uint64_t now_us = 0;
