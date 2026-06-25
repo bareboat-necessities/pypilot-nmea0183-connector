@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <pypilot_data_model.hpp>
-#include <pypilot_nmea0183_connector.hpp>
+#include <nmea0183_connector.hpp>
 
 pypilot_data_model::DataModel<> model;
 nmea0183_connector::Nmea0183StreamParser parser;
