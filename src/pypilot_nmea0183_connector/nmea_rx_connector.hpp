@@ -4,7 +4,7 @@
 #include <pypilot_data_model.hpp>
 #include "sentence_parser.hpp"
 
-namespace pypilot_nmea0183_connector {
+namespace nmea0183_connector {
 
 inline float pypilot_wrap_360_deg(float v) {
     while (v >= 360.0f) v -= 360.0f;
@@ -58,27 +58,27 @@ public:
     bool apply_sentence(const NmeaSentence& s, pypilot_data_model::DataModel<Real>& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
         last_error_ = "";
         if (!s.valid_checksum) { last_error_ = "invalid checksum"; return false; }
-        if (formatter_is(s, "RMC")) return apply_rmc(s, model, now_us, source);
-        if (formatter_is(s, "GGA")) return apply_gga(s, model, now_us, source);
-        if (formatter_is(s, "GLL")) return apply_gll(s, model, now_us, source);
-        if (formatter_is(s, "VTG")) return apply_vtg(s, model, now_us, source);
-        if (formatter_is(s, "HDT")) return apply_heading(s, model, now_us, "bad HDT");
-        if (formatter_is(s, "HDM")) return apply_heading(s, model, now_us, "bad HDM");
-        if (formatter_is(s, "HDG")) return apply_hdg(s, model, now_us);
-        if (formatter_is(s, "MWV")) return apply_mwv(s, model, now_us, source);
-        if (formatter_is(s, "MWD")) return apply_mwd(s, model, now_us, source);
-        if (formatter_is(s, "VWR")) return apply_vwr(s, model, now_us, source, false);
-        if (formatter_is(s, "VWT")) return apply_vwr(s, model, now_us, source, true);
-        if (formatter_is(s, "VHW")) return apply_vhw(s, model, now_us, source);
-        if (formatter_is(s, "LWY")) return apply_lwy(s, model, now_us, source);
-        if (formatter_is(s, "DBT")) return apply_dbt(s, model, now_us, source);
-        if (formatter_is(s, "DPT")) return apply_dpt(s, model, now_us, source);
-        if (formatter_is(s, "RSA")) return apply_rsa(s, model, now_us, source);
-        if (formatter_is(s, "APB")) return apply_apb(s, model, now_us, source);
-        if (formatter_is(s, "RMB")) return apply_rmb(s, model, now_us, source);
-        if (formatter_is(s, "XTE")) return apply_xte(s, model, now_us, source);
-        if (formatter_is(s, "XDR")) return apply_xdr(s, model, now_us);
-        if (formatter_is(s, "ROT")) return apply_rot(s, model, now_us);
+        if (sentence_is(s, "RMC")) return apply_rmc(s, model, now_us, source);
+        if (sentence_is(s, "GGA")) return apply_gga(s, model, now_us, source);
+        if (sentence_is(s, "GLL")) return apply_gll(s, model, now_us, source);
+        if (sentence_is(s, "VTG")) return apply_vtg(s, model, now_us, source);
+        if (sentence_is(s, "HDT")) return apply_heading(s, model, now_us, "bad HDT");
+        if (sentence_is(s, "HDM")) return apply_heading(s, model, now_us, "bad HDM");
+        if (sentence_is(s, "HDG")) return apply_hdg(s, model, now_us);
+        if (sentence_is(s, "MWV")) return apply_mwv(s, model, now_us, source);
+        if (sentence_is(s, "MWD")) return apply_mwd(s, model, now_us, source);
+        if (sentence_is(s, "VWR")) return apply_vwr(s, model, now_us, source, false);
+        if (sentence_is(s, "VWT")) return apply_vwr(s, model, now_us, source, true);
+        if (sentence_is(s, "VHW")) return apply_vhw(s, model, now_us, source);
+        if (sentence_is(s, "LWY")) return apply_lwy(s, model, now_us, source);
+        if (sentence_is(s, "DBT")) return apply_dbt(s, model, now_us, source);
+        if (sentence_is(s, "DPT")) return apply_dpt(s, model, now_us, source);
+        if (sentence_is(s, "RSA")) return apply_rsa(s, model, now_us, source);
+        if (sentence_is(s, "APB")) return apply_apb(s, model, now_us, source);
+        if (sentence_is(s, "RMB")) return apply_rmb(s, model, now_us, source);
+        if (sentence_is(s, "XTE")) return apply_xte(s, model, now_us, source);
+        if (sentence_is(s, "XDR")) return apply_xdr(s, model, now_us);
+        if (sentence_is(s, "ROT")) return apply_rot(s, model, now_us);
         last_error_ = "unsupported sentence";
         return false;
     }
@@ -344,4 +344,4 @@ private:
     }
 };
 
-} // namespace pypilot_nmea0183_connector
+} // namespace nmea0183_connector
