@@ -16,7 +16,7 @@ static bool parse(const char* line, NmeaSentence& s) {
 
 int main() {
     DataModel<> model;
-    Nmea0183Connector<> c;
+    Nmea0183RxConnector<> c;
     NmeaSentence s;
     char line[128];
     make_sentence(line, sizeof(line), "GPAPB,A,A,0.200,L,N,A,A,011.0,T,WPT,123.4,T,234.5,M");
