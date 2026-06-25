@@ -18,6 +18,13 @@ inline float pypilot_wrap_180_deg(float v) {
     return v;
 }
 
+inline void copy_nmea_id(char* out, size_t out_size, const char* value) {
+    if (!out || out_size == 0) return;
+    size_t i = 0;
+    for (; i + 1 < out_size && value && value[i]; ++i) out[i] = value[i];
+    out[i] = '\0';
+}
+
 inline bool parse_rmc_timestamp_s(const char* utc_time, const char* date_ddmmyy, float& out_s) {
     if (!utc_time || !date_ddmmyy || strlen(utc_time) < 6 || strlen(date_ddmmyy) < 6) return false;
     int hour = (utc_time[0]-'0')*10 + (utc_time[1]-'0');
@@ -60,18 +67,25 @@ public:
         if (!s.valid_checksum) { last_error_ = "invalid checksum"; return false; }
         if (formatter_is(s, "RMC")) return apply_rmc(s, model, now_us, source);
         if (formatter_is(s, "GGA")) return apply_gga(s, model, now_us, source);
+        if (formatter_is(s, "GLL")) return apply_gll(s, model, now_us, source);
         if (formatter_is(s, "VTG")) return apply_vtg(s, model, now_us, source);
         if (formatter_is(s, "HDT")) return apply_heading(s, model, now_us, "bad HDT");
         if (formatter_is(s, "HDM")) return apply_heading(s, model, now_us, "bad HDM");
         if (formatter_is(s, "HDG")) return apply_hdg(s, model, now_us);
         if (formatter_is(s, "MWV")) return apply_mwv(s, model, now_us, source);
+        if (formatter_is(s, "MWD")) return apply_mwd(s, model, now_us, source);
         if (formatter_is(s, "VWR")) return apply_vwr(s, model, now_us, source, false);
         if (formatter_is(s, "VWT")) return apply_vwr(s, model, now_us, source, true);
         if (formatter_is(s, "VHW")) return apply_vhw(s, model, now_us, source);
         if (formatter_is(s, "LWY")) return apply_lwy(s, model, now_us, source);
+        if (formatter_is(s, "DBT")) return apply_dbt(s, model, now_us, source);
+        if (formatter_is(s, "DPT")) return apply_dpt(s, model, now_us, source);
         if (formatter_is(s, "RSA")) return apply_rsa(s, model, now_us, source);
         if (formatter_is(s, "APB")) return apply_apb(s, model, now_us, source);
+        if (formatter_is(s, "RMB")) return apply_rmb(s, model, now_us, source);
         if (formatter_is(s, "XTE")) return apply_xte(s, model, now_us, source);
+        if (formatter_is(s, "XDR")) return apply_xdr(s, model, now_us);
+        if (formatter_is(s, "ROT")) return apply_rot(s, model, now_us);
         last_error_ = "unsupported sentence";
         return false;
     }
@@ -111,6 +125,17 @@ private:
         if (parse_lat_lon(s.field(1), s.field(2), lat)) model.navigation.gps.fix_lat_deg.set(static_cast<Real>(lat), now_us);
         if (parse_lat_lon(s.field(3), s.field(4), lon)) model.navigation.gps.fix_lon_deg.set(static_cast<Real>(lon), now_us);
         if (parse_real(s.field(8), alt)) model.navigation.gps.fix_alt_m.set(static_cast<Real>(alt), now_us);
+        set_source(model.navigation.gps.source, source);
+        model.navigation.gps.last_update_us = now_us;
+        return true;
+    }
+
+    template<typename Model>
+    bool apply_gll(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+        if (s.field_count < 6 || s.field(5)[0] != 'A') { last_error_ = "bad GLL"; return false; }
+        float lat = 0, lon = 0;
+        if (parse_lat_lon(s.field(0), s.field(1), lat)) model.navigation.gps.fix_lat_deg.set(static_cast<Real>(lat), now_us);
+        if (parse_lat_lon(s.field(2), s.field(3), lon)) model.navigation.gps.fix_lon_deg.set(static_cast<Real>(lon), now_us);
         set_source(model.navigation.gps.source, source);
         model.navigation.gps.last_update_us = now_us;
         return true;
@@ -163,6 +188,17 @@ private:
     }
 
     template<typename Model>
+    bool apply_mwd(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+        float direction = 0, speed = 0;
+        if (s.field_count < 7 || !parse_real(s.field(0), direction) || !parse_knots(s.field(4), s.field(5), speed)) { last_error_ = "bad MWD"; return false; }
+        model.wind.truewind.direction_deg.set(static_cast<Real>(pypilot_wrap_180_deg(direction)), now_us);
+        model.wind.truewind.speed_kn.set(static_cast<Real>(speed), now_us);
+        set_source(model.wind.truewind.source, source);
+        model.wind.truewind.last_update_us = now_us;
+        return true;
+    }
+
+    template<typename Model>
     bool apply_vwr(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source, bool true_wind) {
         float angle = 0, speed = 0;
         if (!parse_left_right_signed(s.field(0), s.field(1), angle) || !parse_knots(s.field(2), s.field(3), speed)) { last_error_ = true_wind ? "bad VWT" : "bad VWR"; return false; }
@@ -186,6 +222,30 @@ private:
         if (s.field_count < 2 || s.field(0)[0] != 'A' || !parse_real(s.field(1), leeway)) { last_error_ = "bad LWY"; return false; }
         model.water.leeway_deg.set(static_cast<Real>(leeway), now_us);
         set_source(model.water.leeway_source, source);
+        model.water.last_update_us = now_us;
+        return true;
+    }
+
+    template<typename Model>
+    bool apply_dbt(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+        float depth = 0;
+        if (s.field_count >= 4 && parse_real(s.field(2), depth)) {
+            model.water.depth_m.set(static_cast<Real>(depth), now_us);
+            set_source(model.water.depth_source, source);
+            model.water.last_update_us = now_us;
+            return true;
+        }
+        last_error_ = "bad DBT";
+        return false;
+    }
+
+    template<typename Model>
+    bool apply_dpt(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+        float depth = 0, offset = 0;
+        if (!parse_real(s.field(0), depth)) { last_error_ = "bad DPT"; return false; }
+        model.water.depth_m.set(static_cast<Real>(depth), now_us);
+        if (parse_real(s.field(1), offset)) model.water.depth_offset_m.set(static_cast<Real>(offset), now_us);
+        set_source(model.water.depth_source, source);
         model.water.last_update_us = now_us;
         return true;
     }
@@ -240,6 +300,54 @@ private:
         model.navigation.apb.last_update_us = now_us;
         if (!any) last_error_ = "bad APB";
         return any;
+    }
+
+    template<typename Model>
+    bool apply_rmb(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+        if (s.field_count < 13 || s.field(0)[0] != 'A') { last_error_ = "bad RMB"; return false; }
+        float xte = 0, lat = 0, lon = 0, range = 0, bearing = 0, vmg = 0;
+        if (parse_left_right_signed(s.field(1), s.field(2), xte)) {
+            model.navigation.rmb.xte_nmi.set(static_cast<Real>(xte), now_us);
+            model.navigation.apb.xte_nmi.set(static_cast<Real>(xte), now_us);
+        }
+        copy_nmea_id(model.navigation.rmb.origin_id, sizeof(model.navigation.rmb.origin_id), s.field(3));
+        copy_nmea_id(model.navigation.rmb.destination_id, sizeof(model.navigation.rmb.destination_id), s.field(4));
+        if (parse_lat_lon(s.field(5), s.field(6), lat)) model.navigation.rmb.destination_lat_deg.set(static_cast<Real>(lat), now_us);
+        if (parse_lat_lon(s.field(7), s.field(8), lon)) model.navigation.rmb.destination_lon_deg.set(static_cast<Real>(lon), now_us);
+        if (parse_real(s.field(9), range)) model.navigation.rmb.range_nmi.set(static_cast<Real>(range), now_us);
+        if (parse_real(s.field(10), bearing)) {
+            model.navigation.rmb.bearing_deg.set(static_cast<Real>(pypilot_wrap_360_deg(bearing)), now_us);
+            model.navigation.apb.track_deg.set(static_cast<Real>(pypilot_wrap_360_deg(bearing)), now_us);
+        }
+        if (parse_real(s.field(11), vmg)) model.navigation.rmb.closing_velocity_kn.set(static_cast<Real>(vmg), now_us);
+        model.navigation.rmb.arrived.value = s.field(12)[0] == 'A';
+        set_source(model.navigation.rmb.source, source);
+        set_source(model.navigation.apb.source, source);
+        model.navigation.rmb.last_update_us = now_us;
+        model.navigation.apb.last_update_us = now_us;
+        return true;
+    }
+
+    template<typename Model>
+    bool apply_xdr(const NmeaSentence& s, Model& model, uint64_t now_us) {
+        bool any = false;
+        for (uint8_t i = 0; i + 3 < s.field_count; i += 4) {
+            float v = 0;
+            if (s.field(i)[0] == 'A' && parse_real(s.field(i + 1), v) && s.field(i + 2)[0] == 'D') {
+                if (strcmp(s.field(i + 3), "PTCH") == 0) { model.imu.pitch_deg.set(static_cast<Real>(v), now_us); any = true; }
+                else if (strcmp(s.field(i + 3), "ROLL") == 0) { model.imu.roll_deg.set(static_cast<Real>(v), now_us); any = true; }
+            }
+        }
+        if (!any) last_error_ = "bad XDR";
+        return any;
+    }
+
+    template<typename Model>
+    bool apply_rot(const NmeaSentence& s, Model& model, uint64_t now_us) {
+        float rate_min = 0;
+        if (s.field_count < 2 || s.field(1)[0] != 'A' || !parse_real(s.field(0), rate_min)) { last_error_ = "bad ROT"; return false; }
+        model.imu.heading_rate_lowpass_deg_s.set(static_cast<Real>(rate_min / 60.0f), now_us);
+        return true;
     }
 };
 
