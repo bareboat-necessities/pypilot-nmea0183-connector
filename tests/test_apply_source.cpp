@@ -14,7 +14,7 @@ static bool parse(const char* line, NmeaSentence& s) {
 
 int main() {
     DataModel<> model;
-    Nmea0183Connector<> c;
+    Nmea0183RxConnector<> c;
     NmeaSentence s;
     assert(parse("$IIMWV,45.0,R,12.3,N,A*3C\r\n", s));
     assert(c.apply_sentence(s, model, 77, SensorSource::tcp));
