@@ -26,11 +26,13 @@ The public include exposes NMEA 0183 helpers, sentence parsing, stream parsing, 
 Internal source headers are intentionally coarse-grained:
 
 ```text
-nmea0183_helpers.hpp       checksum and scalar/field parse helpers; no sentence dependency
+nmea0183_helpers.hpp       checksum and scalar/span parse helpers; no sentence dependency
 sentence_parser.hpp        NmeaSentence plus Nmea0183StreamParser
 nmea_rx_connector.hpp      Nmea0183RxConnector input applier into pypilot-data-model
 nmea_tx_connector.hpp      NMEA output formatter helpers
 ```
+
+`NmeaSentence` stores one raw sentence buffer. Body, talker, formatter, and fields are `NmeaSpan` pointer/length views into that raw buffer; tokenization does not copy the body and does not write temporary null terminators into fields. Numeric parsing uses a small local temporary only when converting a span to a number.
 
 All supported input sentences are applied through `Nmea0183RxConnector::apply_sentence()`.
 
