@@ -6,7 +6,7 @@
 #include <string.h>
 #include <math.h>
 
-namespace pypilot_nmea0183_connector {
+namespace nmea0183_connector {
 
 struct NmeaSpan {
     const char* data;
@@ -181,4 +181,4 @@ inline bool parse_east_west_signed(const char* magnitude, const char* side, floa
     return parse_east_west_signed(NmeaSpan(magnitude, magnitude ? strlen(magnitude) : 0), NmeaSpan(side, side ? strlen(side) : 0), out);
 }
 
-} // namespace pypilot_nmea0183_connector
+} // namespace nmea0183_connector
