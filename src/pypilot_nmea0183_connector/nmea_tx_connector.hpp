@@ -169,8 +169,8 @@ inline size_t make_ap_mwv(char* out, size_t out_size, float direction_deg, float
     return make_mwv(out, out_size, format_wrap_360_deg(direction_deg), speed_kn, apparent, "AP");
 }
 
-inline size_t make_ap_rsa(char* out, size_t out_size, float pypilot_rudder_deg) {
-    return make_rsa(out, out_size, -pypilot_rudder_deg, "AP");
+inline size_t make_ap_rsa(char* out, size_t out_size, float rudder_deg) {
+    return make_rsa(out, out_size, -rudder_deg, "AP");
 }
 
 } // namespace nmea0183_connector
