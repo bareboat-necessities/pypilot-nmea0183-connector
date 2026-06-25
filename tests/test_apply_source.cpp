@@ -2,7 +2,7 @@
 #include <pypilot_nmea0183_connector.hpp>
 #include <pypilot_data_model.hpp>
 
-using namespace pypilot_nmea0183_connector;
+using namespace nmea0183_connector;
 using namespace pypilot_data_model;
 
 static bool parse(const char* line, NmeaSentence& s) {
