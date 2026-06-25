@@ -10,15 +10,10 @@ using namespace pypilot_data_model;
 static void make_sentence_object(NmeaSentence& s, const char* formatter, const char* const* fields, uint8_t count) {
     s.clear();
     s.valid_checksum = true;
-    s.talker[0] = 'I';
-    s.talker[1] = 'I';
-    s.talker[2] = '\0';
-    s.formatter[0] = formatter[0];
-    s.formatter[1] = formatter[1];
-    s.formatter[2] = formatter[2];
-    s.formatter[3] = '\0';
+    s.talker = NmeaSpan("II", 2);
+    s.formatter = NmeaSpan(formatter, 3);
     s.field_count = count;
-    for (uint8_t i = 0; i < count; ++i) s.fields[i] = const_cast<char*>(fields[i]);
+    for (uint8_t i = 0; i < count; ++i) s.fields[i] = NmeaSpan(fields[i], std::strlen(fields[i]));
 }
 
 int main() {
