@@ -18,15 +18,8 @@ inline float pypilot_wrap_180_deg(float v) {
     return v;
 }
 
-inline void copy_nmea_id(char* out, size_t out_size, const char* value) {
-    if (!out || out_size == 0) return;
-    size_t i = 0;
-    for (; i + 1 < out_size && value && value[i]; ++i) out[i] = value[i];
-    out[i] = '\0';
-}
-
-inline bool parse_rmc_timestamp_s(const char* utc_time, const char* date_ddmmyy, float& out_s) {
-    if (!utc_time || !date_ddmmyy || strlen(utc_time) < 6 || strlen(date_ddmmyy) < 6) return false;
+inline bool parse_rmc_timestamp_s(NmeaSpan utc_time, NmeaSpan date_ddmmyy, float& out_s) {
+    if (utc_time.length < 6 || date_ddmmyy.length < 6) return false;
     int hour = (utc_time[0]-'0')*10 + (utc_time[1]-'0');
     int minute = (utc_time[2]-'0')*10 + (utc_time[3]-'0');
     int second = (utc_time[4]-'0')*10 + (utc_time[5]-'0');
@@ -310,8 +303,8 @@ private:
             model.navigation.rmb.xte_nmi.set(static_cast<Real>(xte), now_us);
             model.navigation.apb.xte_nmi.set(static_cast<Real>(xte), now_us);
         }
-        copy_nmea_id(model.navigation.rmb.origin_id, sizeof(model.navigation.rmb.origin_id), s.field(3));
-        copy_nmea_id(model.navigation.rmb.destination_id, sizeof(model.navigation.rmb.destination_id), s.field(4));
+        nmea_copy_span(model.navigation.rmb.origin_id, sizeof(model.navigation.rmb.origin_id), s.field(3));
+        nmea_copy_span(model.navigation.rmb.destination_id, sizeof(model.navigation.rmb.destination_id), s.field(4));
         if (parse_lat_lon(s.field(5), s.field(6), lat)) model.navigation.rmb.destination_lat_deg.set(static_cast<Real>(lat), now_us);
         if (parse_lat_lon(s.field(7), s.field(8), lon)) model.navigation.rmb.destination_lon_deg.set(static_cast<Real>(lon), now_us);
         if (parse_real(s.field(9), range)) model.navigation.rmb.range_nmi.set(static_cast<Real>(range), now_us);
@@ -334,8 +327,8 @@ private:
         for (uint8_t i = 0; i + 3 < s.field_count; i += 4) {
             float v = 0;
             if (s.field(i)[0] == 'A' && parse_real(s.field(i + 1), v) && s.field(i + 2)[0] == 'D') {
-                if (strcmp(s.field(i + 3), "PTCH") == 0) { model.imu.pitch_deg.set(static_cast<Real>(v), now_us); any = true; }
-                else if (strcmp(s.field(i + 3), "ROLL") == 0) { model.imu.roll_deg.set(static_cast<Real>(v), now_us); any = true; }
+                if (nmea_span_equals(s.field(i + 3), "PTCH")) { model.imu.pitch_deg.set(static_cast<Real>(v), now_us); any = true; }
+                else if (nmea_span_equals(s.field(i + 3), "ROLL")) { model.imu.roll_deg.set(static_cast<Real>(v), now_us); any = true; }
             }
         }
         if (!any) last_error_ = "bad XDR";
