@@ -15,7 +15,7 @@ static bool parse(const char* line, NmeaSentence& s) {
 
 int main() {
     DataModel<> model;
-    Nmea0183Connector<> c;
+    Nmea0183RxConnector<> c;
     NmeaSentence s;
     assert(parse("$IILWY,A,3.2*2C\r\n", s));
     assert(c.apply_sentence(s, model, 100, SensorSource::serial));
