@@ -22,13 +22,13 @@ int main() {
     make_rot(line, sizeof(line), 3.75f);
     expect_body(line, "APROT,3.750,A");
 
-    make_pypilot_hdm(line, sizeof(line), 123.4f);
+    make_ap_hdm(line, sizeof(line), 123.4f);
     expect_body(line, "APHDM,123.4,M");
 
-    make_pypilot_mwv(line, sizeof(line), -10.0f, 12.3f, true);
+    make_ap_mwv(line, sizeof(line), -10.0f, 12.3f, true);
     expect_body(line, "APMWV,350.0,R,12.3,N,A");
 
-    make_pypilot_rsa(line, sizeof(line), 2.5f);
+    make_ap_rsa(line, sizeof(line), 2.5f);
     expect_body(line, "APRSA,-2.5,A,,V");
 
     pypilot_data_model::DataModel<> model;
@@ -36,7 +36,7 @@ int main() {
     model.navigation.gps.fix_lon_deg.set(11.516666f, 100);
     model.navigation.gps.speed_kn.set(22.4f, 100);
     model.navigation.gps.track_deg.set(84.4f, 100);
-    make_pypilot_rmc(line, sizeof(line), model, "123519", "230394");
+    make_ap_rmc(line, sizeof(line), model, "123519", "230394");
 
     char expected_body[128];
     std::strcpy(expected_body, "AP");
