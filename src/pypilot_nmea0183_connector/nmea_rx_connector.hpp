@@ -6,14 +6,14 @@
 
 namespace nmea0183_connector {
 
-inline float pypilot_wrap_360_deg(float v) {
+inline float wrap_360_deg(float v) {
     while (v >= 360.0f) v -= 360.0f;
     while (v < 0.0f) v += 360.0f;
     return v;
 }
 
-inline float pypilot_wrap_180_deg(float v) {
-    v = pypilot_wrap_360_deg(v + 180.0f) - 180.0f;
+inline float wrap_180_deg(float v) {
+    v = wrap_360_deg(v + 180.0f) - 180.0f;
     if (v <= -180.0f) v += 360.0f;
     return v;
 }
@@ -100,7 +100,7 @@ private:
         if (parse_lat_lon(s.field(2), s.field(3), lat)) model.navigation.gps.fix_lat_deg.set(static_cast<Real>(lat), now_us);
         if (parse_lat_lon(s.field(4), s.field(5), lon)) model.navigation.gps.fix_lon_deg.set(static_cast<Real>(lon), now_us);
         if (parse_real(s.field(6), speed)) model.navigation.gps.speed_kn.set(static_cast<Real>(speed), now_us);
-        if (parse_real(s.field(7), track)) model.navigation.gps.track_deg.set(static_cast<Real>(pypilot_wrap_360_deg(track)), now_us);
+        if (parse_real(s.field(7), track)) model.navigation.gps.track_deg.set(static_cast<Real>(wrap_360_deg(track)), now_us);
         if (s.field_count >= 9 && parse_rmc_timestamp_s(s.field(0), s.field(8), timestamp)) model.navigation.gps.timestamp_s.set(static_cast<Real>(timestamp), now_us);
         if (s.field_count >= 11) {
             float declination = 0;
@@ -138,7 +138,7 @@ private:
     bool apply_vtg(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
         if (s.field_count < 7) { last_error_ = "short VTG"; return false; }
         float track = 0, speed = 0;
-        if (parse_real(s.field(0), track)) model.navigation.gps.track_deg.set(static_cast<Real>(pypilot_wrap_360_deg(track)), now_us);
+        if (parse_real(s.field(0), track)) model.navigation.gps.track_deg.set(static_cast<Real>(wrap_360_deg(track)), now_us);
         if (parse_knots(s.field(4), s.field(5), speed)) model.navigation.gps.speed_kn.set(static_cast<Real>(speed), now_us);
         else if (parse_knots(s.field(6), s.field(7), speed)) model.navigation.gps.speed_kn.set(static_cast<Real>(speed), now_us);
         set_source(model.navigation.gps.source, source);
@@ -150,7 +150,7 @@ private:
     bool apply_heading(const NmeaSentence& s, Model& model, uint64_t now_us, const char* error) {
         float heading = 0;
         if (!parse_real(s.field(0), heading)) { last_error_ = error; return false; }
-        model.imu.heading_deg.set(static_cast<Real>(pypilot_wrap_360_deg(heading)), now_us);
+        model.imu.heading_deg.set(static_cast<Real>(wrap_360_deg(heading)), now_us);
         return true;
     }
 
@@ -173,7 +173,7 @@ private:
 
     template<typename Wind>
     bool set_wind(Wind& wind, float angle, float speed, uint64_t now_us, pypilot_data_model::SensorSource source) {
-        wind.direction_deg.set(pypilot_wrap_180_deg(angle), now_us);
+        wind.direction_deg.set(wrap_180_deg(angle), now_us);
         wind.speed_kn.set(speed, now_us);
         set_source(wind.source, source);
         wind.last_update_us = now_us;
@@ -184,7 +184,7 @@ private:
     bool apply_mwd(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
         float direction = 0, speed = 0;
         if (s.field_count < 7 || !parse_real(s.field(0), direction) || !parse_knots(s.field(4), s.field(5), speed)) { last_error_ = "bad MWD"; return false; }
-        model.wind.truewind.direction_deg.set(static_cast<Real>(pypilot_wrap_180_deg(direction)), now_us);
+        model.wind.truewind.direction_deg.set(static_cast<Real>(wrap_180_deg(direction)), now_us);
         model.wind.truewind.speed_kn.set(static_cast<Real>(speed), now_us);
         set_source(model.wind.truewind.source, source);
         model.wind.truewind.last_update_us = now_us;
@@ -278,7 +278,7 @@ private:
             any = true;
         }
         if (parse_real(s.field(12), track)) {
-            model.navigation.apb.track_deg.set(static_cast<Real>(pypilot_wrap_360_deg(track)), now_us);
+            model.navigation.apb.track_deg.set(static_cast<Real>(wrap_360_deg(track)), now_us);
             any = true;
         }
         last_apb_mode_ = s.field(13)[0] == 'M' ? pypilot_data_model::AutopilotMode::compass : pypilot_data_model::AutopilotMode::gps;
@@ -309,8 +309,8 @@ private:
         if (parse_lat_lon(s.field(7), s.field(8), lon)) model.navigation.rmb.destination_lon_deg.set(static_cast<Real>(lon), now_us);
         if (parse_real(s.field(9), range)) model.navigation.rmb.range_nmi.set(static_cast<Real>(range), now_us);
         if (parse_real(s.field(10), bearing)) {
-            model.navigation.rmb.bearing_deg.set(static_cast<Real>(pypilot_wrap_360_deg(bearing)), now_us);
-            model.navigation.apb.track_deg.set(static_cast<Real>(pypilot_wrap_360_deg(bearing)), now_us);
+            model.navigation.rmb.bearing_deg.set(static_cast<Real>(wrap_360_deg(bearing)), now_us);
+            model.navigation.apb.track_deg.set(static_cast<Real>(wrap_360_deg(bearing)), now_us);
         }
         if (parse_real(s.field(11), vmg)) model.navigation.rmb.closing_velocity_kn.set(static_cast<Real>(vmg), now_us);
         model.navigation.rmb.arrived.value = s.field(12)[0] == 'A';
