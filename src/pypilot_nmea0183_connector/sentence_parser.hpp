@@ -6,7 +6,7 @@
 
 #include "nmea0183_helpers.hpp"
 
-namespace pypilot_nmea0183_connector {
+namespace nmea0183_connector {
 
 static const uint8_t NMEA_MAX_SENTENCE_LEN = 96;
 static const uint8_t NMEA_MAX_FIELDS = 32;
@@ -16,7 +16,7 @@ struct NmeaSentence {
     uint8_t raw_length;
     NmeaSpan body;
     NmeaSpan talker;
-    NmeaSpan formatter;
+    NmeaSpan sentence;
     NmeaSpan fields[NMEA_MAX_FIELDS];
     uint8_t field_count;
     bool valid_checksum;
@@ -27,7 +27,7 @@ struct NmeaSentence {
         raw_length = 0;
         body = NmeaSpan();
         talker = NmeaSpan();
-        formatter = NmeaSpan();
+        sentence = NmeaSpan();
         field_count = 0;
         valid_checksum = false;
         start_char = '$';
@@ -39,8 +39,8 @@ struct NmeaSentence {
     }
 };
 
-inline bool formatter_is(const NmeaSentence& s, const char* fmt) {
-    return nmea_span_equals(s.formatter, fmt);
+inline bool sentence_is(const NmeaSentence& s, const char* sentence) {
+    return nmea_span_equals(s.sentence, sentence);
 }
 
 inline bool talker_is(const NmeaSentence& s, const char* talker) {
@@ -109,7 +109,7 @@ public:
         if (body_len < 5 || body_offset + body_len > raw_len) { last_error_ = "short body"; return false; }
         out.body = NmeaSpan(raw_begin + body_offset, body_len);
         out.talker = NmeaSpan(out.body.data, 2);
-        out.formatter = NmeaSpan(out.body.data + 2, 3);
+        out.sentence = NmeaSpan(out.body.data + 2, 3);
 
         const char* field_begin = out.body.data;
         const char* body_end = out.body.data + out.body.length;
@@ -137,4 +137,4 @@ private:
     const char* last_error_;
 };
 
-} // namespace pypilot_nmea0183_connector
+} // namespace nmea0183_connector
