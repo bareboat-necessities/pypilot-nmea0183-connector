@@ -2,7 +2,7 @@
 #include <cmath>
 #include <pypilot_nmea0183_connector.hpp>
 
-using namespace pypilot_nmea0183_connector;
+using namespace nmea0183_connector;
 
 int main() {
     float v = 0;
