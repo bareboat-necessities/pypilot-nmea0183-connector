@@ -1,7 +1,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include <pypilot_nmea0183_connector.hpp>
+#include <nmea0183_connector.hpp>
 #include <pypilot_data_model.hpp>
 
 using namespace nmea0183_connector;
