@@ -7,7 +7,7 @@
 #ifdef ARDUINO
 #include <Arduino.h>
 #endif
-#include "parse_helpers.hpp"
+#include "nmea0183_helpers.hpp"
 
 namespace pypilot_nmea0183_connector {
 
