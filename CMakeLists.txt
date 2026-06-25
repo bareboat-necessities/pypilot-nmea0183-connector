@@ -24,7 +24,7 @@ if(PYPILOT_NMEA0183_CONNECTOR_BUILD_TESTS)
   foreach(test_name
       test_checksum
       test_stream_parser
-      test_parse_helpers
+      test_nmea0183_helpers
       test_apply_gps
       test_apply_wind
       test_apply_heading
