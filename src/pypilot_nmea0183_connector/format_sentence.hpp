@@ -7,7 +7,6 @@
 #ifdef ARDUINO
 #include <Arduino.h>
 #endif
-#include "checksum.hpp"
 #include "parse_helpers.hpp"
 
 namespace pypilot_nmea0183_connector {
