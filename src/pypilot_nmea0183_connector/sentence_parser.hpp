@@ -17,7 +17,6 @@ struct NmeaSentence {
     NmeaSpan body;
     NmeaSpan talker;
     NmeaSpan sentence;
-    NmeaSpan formatter;
     NmeaSpan fields[NMEA_MAX_FIELDS];
     uint8_t field_count;
     bool valid_checksum;
@@ -29,7 +28,6 @@ struct NmeaSentence {
         body = NmeaSpan();
         talker = NmeaSpan();
         sentence = NmeaSpan();
-        formatter = NmeaSpan();
         field_count = 0;
         valid_checksum = false;
         start_char = '$';
@@ -112,7 +110,6 @@ public:
         out.body = NmeaSpan(raw_begin + body_offset, body_len);
         out.talker = NmeaSpan(out.body.data, 2);
         out.sentence = NmeaSpan(out.body.data + 2, 3);
-        out.formatter = out.sentence;
 
         const char* field_begin = out.body.data;
         const char* body_end = out.body.data + out.body.length;
