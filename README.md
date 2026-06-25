@@ -21,6 +21,12 @@ Use the same include on Linux and Arduino:
 #include <pypilot_nmea0183_connector.hpp>
 ```
 
+Public C++ symbols live in:
+
+```cpp
+namespace nmea0183_connector
+```
+
 The public include exposes NMEA 0183 helpers, sentence parsing, stream parsing, RX application, and TX formatting through one compact surface.
 
 Internal source headers are intentionally coarse-grained:
@@ -32,7 +38,9 @@ nmea_rx_connector.hpp      Nmea0183RxConnector input applier into pypilot-data-m
 nmea_tx_connector.hpp      NMEA output formatter helpers
 ```
 
-`NmeaSentence` stores one raw sentence buffer. Body, talker, formatter, and fields are `NmeaSpan` pointer/length views into that raw buffer; tokenization does not copy the body and does not write temporary null terminators into fields. Numeric parsing uses a small local temporary only when converting a span to a number.
+`NmeaSentence` stores one raw sentence buffer. Body, talker, sentence id, and fields are `NmeaSpan` pointer/length views into that raw buffer; tokenization does not copy the body and does not write temporary null terminators into fields. Numeric parsing uses a small local temporary only when converting a span to a number.
+
+Use `sentence_is(sentence, "RMC")` to match the three-letter NMEA sentence id.
 
 All supported input sentences are applied through `Nmea0183RxConnector::apply_sentence()`.
 
