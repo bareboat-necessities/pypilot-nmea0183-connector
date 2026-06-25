@@ -21,6 +21,8 @@ Use the same include on Linux and Arduino:
 #include <pypilot_nmea0183_connector.hpp>
 ```
 
+The public include exposes sentence parsing, checksum helpers, stream parsing, first-class input application, and output formatting through one compact surface. Checksum helpers live in `parse_helpers.hpp`; there is no separate checksum header. All supported input sentences are applied through `Nmea0183Connector::apply_sentence()`; there is no separate optional-input applier.
+
 ## Dependencies
 
 The connector expects this sibling project or include path:
@@ -44,11 +46,12 @@ ctest --test-dir build --output-on-failure
 ## Supported input
 
 ```text
-RMC, GGA, VTG
+RMC, GGA, GLL, VTG
 HDT, HDM, HDG
-MWV, VWR, VWT
-VHW, LWY, RSA
-APB, XTE
+MWV, MWD, VWR, VWT
+VHW, LWY, DBT, DPT, RSA
+APB, RMB, XTE
+XDR, ROT
 ```
 
 pypilot-specific compatibility details:
@@ -56,6 +59,8 @@ pypilot-specific compatibility details:
 ```text
 RSA input is sign-inverted into pypilot rudder angle.
 APB XTE is clamped to +/-0.15 nmi and writes mode_hint plus sender_id into model.navigation.apb.
+RMB writes route/waypoint fields into model.navigation.rmb and updates APB track/XTE hints.
+XDR pitch/roll and ROT heading-rate are first-class inputs.
 apply_sentence has a source-aware overload for serial/tcp/gpsd/signalk provenance.
 ```
 
