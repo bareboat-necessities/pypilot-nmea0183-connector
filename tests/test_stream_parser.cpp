@@ -1,5 +1,4 @@
 #include <cassert>
-#include <cstring>
 #include <pypilot_nmea0183_connector.hpp>
 
 using namespace pypilot_nmea0183_connector;
@@ -11,11 +10,13 @@ int main() {
     bool got = false;
     for (const char* p = line; *p; ++p) got = parser.push(*p, s) || got;
     assert(got);
-    assert(std::strcmp(s.talker, "II") == 0);
-    assert(std::strcmp(s.formatter, "MWV") == 0);
+    assert(nmea_span_equals(s.talker, "II"));
+    assert(nmea_span_equals(s.formatter, "MWV"));
     assert(s.field_count == 5);
-    assert(std::strcmp(s.field(0), "45.0") == 0);
-    assert(std::strcmp(s.field(1), "R") == 0);
+    assert(nmea_span_equals(s.field(0), "45.0"));
+    assert(nmea_span_equals(s.field(1), "R"));
+    assert(s.body.data == s.raw + 1);
+    assert(s.field(0).data > s.raw && s.field(0).data < s.raw + s.raw_length);
 
     parser.reset();
     got = false;
