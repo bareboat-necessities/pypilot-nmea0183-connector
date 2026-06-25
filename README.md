@@ -18,7 +18,7 @@ It deliberately does **not** contain:
 Use the same include on Linux and Arduino:
 
 ```cpp
-#include <pypilot_nmea0183_connector.hpp>
+#include <nmea0183_connector.hpp>
 ```
 
 Public C++ symbols live in:
