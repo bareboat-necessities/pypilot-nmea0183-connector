@@ -2,7 +2,7 @@
 
 #include <string.h>
 #include <pypilot_data_model.hpp>
-#include "parse_helpers.hpp"
+#include "sentence_parser.hpp"
 
 namespace pypilot_nmea0183_connector {
 
