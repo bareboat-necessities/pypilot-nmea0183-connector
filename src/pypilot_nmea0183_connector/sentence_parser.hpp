@@ -13,36 +13,38 @@ static const uint8_t NMEA_MAX_FIELDS = 32;
 
 struct NmeaSentence {
     char raw[NMEA_MAX_SENTENCE_LEN];
-    char body[NMEA_MAX_SENTENCE_LEN];
-    char talker[3];
-    char formatter[6];
-    char* fields[NMEA_MAX_FIELDS];
+    uint8_t raw_length;
+    NmeaSpan body;
+    NmeaSpan talker;
+    NmeaSpan formatter;
+    NmeaSpan fields[NMEA_MAX_FIELDS];
     uint8_t field_count;
     bool valid_checksum;
     char start_char;
 
     void clear() {
         raw[0] = '\0';
-        body[0] = '\0';
-        talker[0] = '\0'; talker[1] = '\0'; talker[2] = '\0';
-        formatter[0] = '\0';
+        raw_length = 0;
+        body = NmeaSpan();
+        talker = NmeaSpan();
+        formatter = NmeaSpan();
         field_count = 0;
         valid_checksum = false;
         start_char = '$';
-        for (uint8_t i = 0; i < NMEA_MAX_FIELDS; ++i) fields[i] = 0;
+        for (uint8_t i = 0; i < NMEA_MAX_FIELDS; ++i) fields[i] = NmeaSpan();
     }
 
-    const char* field(uint8_t index) const {
-        return index < field_count ? fields[index] : "";
+    NmeaSpan field(uint8_t index) const {
+        return index < field_count ? fields[index] : NmeaSpan();
     }
 };
 
 inline bool formatter_is(const NmeaSentence& s, const char* fmt) {
-    return fmt && strcmp(s.formatter, fmt) == 0;
+    return nmea_span_equals(s.formatter, fmt);
 }
 
 inline bool talker_is(const NmeaSentence& s, const char* talker) {
-    return talker && strcmp(s.talker, talker) == 0;
+    return nmea_span_equals(s.talker, talker);
 }
 
 class Nmea0183StreamParser {
@@ -97,34 +99,32 @@ public:
         if (raw_len >= NMEA_MAX_SENTENCE_LEN) raw_len = NMEA_MAX_SENTENCE_LEN - 1;
         memcpy(out.raw, line, raw_len);
         out.raw[raw_len] = '\0';
-        out.start_char = line[0];
+        out.raw_length = static_cast<uint8_t>(raw_len);
+        out.start_char = out.raw[0];
         out.valid_checksum = true;
 
-        size_t body_len = static_cast<size_t>(star - (line + 1));
-        if (body_len >= NMEA_MAX_SENTENCE_LEN) body_len = NMEA_MAX_SENTENCE_LEN - 1;
-        memcpy(out.body, line + 1, body_len);
-        out.body[body_len] = '\0';
+        const char* raw_begin = out.raw;
+        const size_t body_offset = 1;
+        const size_t body_len = static_cast<size_t>(star - (line + 1));
+        if (body_len < 5 || body_offset + body_len > raw_len) { last_error_ = "short body"; return false; }
+        out.body = NmeaSpan(raw_begin + body_offset, body_len);
+        out.talker = NmeaSpan(out.body.data, 2);
+        out.formatter = NmeaSpan(out.body.data + 2, 3);
 
-        if (body_len < 5) { last_error_ = "short body"; return false; }
-        out.talker[0] = out.body[0];
-        out.talker[1] = out.body[1];
-        out.talker[2] = '\0';
-        out.formatter[0] = out.body[2];
-        out.formatter[1] = out.body[3];
-        out.formatter[2] = out.body[4];
-        out.formatter[3] = '\0';
-
-        char* p = out.body;
-        char* comma = strchr(p, ',');
-        if (!comma) return true;
-        *comma = '\0';
-        p = comma + 1;
-        while (out.field_count < NMEA_MAX_FIELDS) {
-            out.fields[out.field_count++] = p;
-            comma = strchr(p, ',');
-            if (!comma) break;
-            *comma = '\0';
-            p = comma + 1;
+        const char* field_begin = out.body.data;
+        const char* body_end = out.body.data + out.body.length;
+        const char* comma = static_cast<const char*>(memchr(field_begin, ',', static_cast<size_t>(body_end - field_begin)));
+        if (!comma) {
+            last_error_ = "";
+            return true;
+        }
+        field_begin = comma + 1;
+        while (out.field_count < NMEA_MAX_FIELDS && field_begin <= body_end) {
+            const char* next = static_cast<const char*>(memchr(field_begin, ',', static_cast<size_t>(body_end - field_begin)));
+            const char* field_end = next ? next : body_end;
+            out.fields[out.field_count++] = NmeaSpan(field_begin, static_cast<size_t>(field_end - field_begin));
+            if (!next) break;
+            field_begin = next + 1;
         }
         last_error_ = "";
         return true;
