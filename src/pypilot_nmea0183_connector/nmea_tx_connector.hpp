@@ -9,7 +9,7 @@
 #endif
 #include "nmea0183_helpers.hpp"
 
-namespace pypilot_nmea0183_connector {
+namespace nmea0183_connector {
 
 inline void format_real(char* out, size_t out_size, float value, unsigned decimals = 1) {
     if (!out || out_size == 0) return;
@@ -173,4 +173,4 @@ inline size_t make_ap_rsa(char* out, size_t out_size, float pypilot_rudder_deg) 
     return make_rsa(out, out_size, -pypilot_rudder_deg, "AP");
 }
 
-} // namespace pypilot_nmea0183_connector
+} // namespace nmea0183_connector
