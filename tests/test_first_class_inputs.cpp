@@ -14,7 +14,6 @@ int main() {
     s.valid_checksum = true;
     s.talker = NmeaSpan("II", 2);
     s.sentence = NmeaSpan("GLL", 3);
-    s.formatter = s.sentence;
     s.field_count = 6;
     s.fields[0] = NmeaSpan("4807.038", 8);
     s.fields[1] = NmeaSpan("N", 1);
