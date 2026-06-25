@@ -21,7 +21,18 @@ Use the same include on Linux and Arduino:
 #include <pypilot_nmea0183_connector.hpp>
 ```
 
-The public include exposes sentence parsing, checksum helpers, stream parsing, first-class input application, and output formatting through one compact surface. Checksum helpers live in `parse_helpers.hpp`; there is no separate checksum header. All supported input sentences are applied through `Nmea0183Connector::apply_sentence()`; there is no separate optional-input applier.
+The public include exposes NMEA 0183 helpers, sentence parsing, stream parsing, first-class input application, and output formatting through one compact surface.
+
+Internal source headers are intentionally coarse-grained:
+
+```text
+nmea0183_helpers.hpp       checksum and scalar/field parse helpers; no sentence dependency
+sentence_parser.hpp        NmeaSentence plus Nmea0183StreamParser
+apply_sentence_pypilot.hpp pypilot-data-model input applier
+format_sentence.hpp        NMEA output formatter
+```
+
+All supported input sentences are applied through `Nmea0183Connector::apply_sentence()`; there is no separate optional-input applier.
 
 ## Dependencies
 
