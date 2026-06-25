@@ -2,7 +2,7 @@
 #include <cstring>
 #include <pypilot_nmea0183_connector.hpp>
 
-using namespace pypilot_nmea0183_connector;
+using namespace nmea0183_connector;
 
 static void expect_body(const char* line, const char* body) {
     char expected[128];
