@@ -23,7 +23,7 @@ static void make_sentence_object(NmeaSentence& s, const char* formatter, const c
 
 int main() {
     DataModel<> model;
-    Nmea0183Connector<> connector;
+    Nmea0183RxConnector<> connector;
     NmeaSentence s;
 
     const char* gll_fields[] = {"4807.038", "N", "01131.000", "E", "123519", "A"};
