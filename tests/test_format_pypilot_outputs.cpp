@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cstring>
 #include <nmea0183_connector.hpp>
+#include <ship_data_model.hpp>
 
 using namespace nmea0183_connector;
 
@@ -31,7 +32,7 @@ int main() {
     make_ap_rsa(line, sizeof(line), 2.5f);
     expect_body(line, "APRSA,-2.5,A,,V");
 
-    pypilot_data_model::DataModel<> model;
+    ship_data_model::DataModel<> model;
     model.navigation.gps.fix_lat_deg.set(48.1173f, 100);
     model.navigation.gps.fix_lon_deg.set(11.516666f, 100);
     model.navigation.gps.speed_kn.set(22.4f, 100);
