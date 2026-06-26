@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <pypilot_data_model.hpp>
+#include <ship_data_model.hpp>
 #ifdef ARDUINO
 #include <Arduino.h>
 #endif
@@ -149,7 +149,7 @@ inline size_t make_rmc(char* out,
 template<typename Real>
 inline size_t make_ap_rmc(char* out,
                           size_t out_size,
-                          const pypilot_data_model::DataModel<Real>& model,
+                          const ship_data_model::DataModel<Real>& model,
                           const char* utc_time,
                           const char* date_ddmmyy,
                           const char* gps_id = "APRMC") {
