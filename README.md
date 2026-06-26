@@ -1,21 +1,8 @@
 # pypilot-nmea0183-connector
 
-Header-only C++11 NMEA 0183 connector for pypilot ports on Arduino and Linux.
+Header-only C++11 NMEA 0183 connector for applying marine NMEA 0183 sentences to the typed pypilot data model and formatting NMEA output from that model.
 
-This project converts between NMEA 0183 byte streams/sentences and typed `pypilot-data-model` fields. It is transport-agnostic and uses fixed buffers in the core.
-
-It deliberately does **not** contain:
-
-- serial drivers
-- TCP/UDP sockets
-- WiFi/Ethernet client objects
-- pypilot TCP client protocol
-- servo UART protocol
-- autopilot control loops
-
-## Public include
-
-Use the same include on Linux and Arduino:
+The repository name and CMake target remain `pypilot_nmea0183_connector`, but the public include is:
 
 ```cpp
 #include <nmea0183_connector.hpp>
@@ -27,34 +14,62 @@ Public C++ symbols live in:
 namespace nmea0183_connector
 ```
 
-The public include exposes NMEA 0183 helpers, sentence parsing, stream parsing, RX application, and TX formatting through one compact surface.
+The connector is transport-agnostic. It works with byte streams and complete NMEA sentences supplied by caller code, but it does not own serial ports, sockets, WiFi, Ethernet, or pypilot TCP sessions.
 
-Internal source headers are intentionally coarse-grained:
+It deliberately does **not** contain:
 
-```text
-nmea0183_helpers.hpp       checksum and scalar/span parse helpers; no sentence dependency
-sentence_parser.hpp        NmeaSentence plus Nmea0183StreamParser
-nmea_rx_connector.hpp      Nmea0183RxConnector input applier into pypilot-data-model
-nmea_tx_connector.hpp      NMEA output formatter helpers
-```
+- serial drivers
+- TCP/UDP sockets
+- WiFi/Ethernet client objects
+- pypilot TCP client protocol
+- servo UART protocol
+- autopilot control loops
 
-`NmeaSentence` stores one raw sentence buffer. Body, talker, sentence id, and fields are `NmeaSpan` pointer/length views into that raw buffer; tokenization does not copy the body and does not write temporary null terminators into fields. Numeric parsing uses a small local temporary only when converting a span to a number.
+## Dependency
 
-Use `sentence_is(sentence, "RMC")` to match the three-letter NMEA sentence id.
-
-All supported input sentences are applied through `Nmea0183RxConnector::apply_sentence()`.
-
-## Dependencies
-
-The connector expects this sibling project or include path:
-
-- `pypilot-data-model`
-
-For local CMake builds, default is:
+The connector depends on the sibling `pypilot-data-model` headers. For local CMake builds, the default include path is:
 
 ```text
 ../pypilot-data-model/src
 ```
+
+Application code normally includes the connector public header and lets it include the data model headers it needs.
+
+## Public surface
+
+The public include exposes:
+
+- checksum helpers
+- fixed-buffer NMEA sentence formatting
+- scalar and span parsing helpers
+- `NmeaSentence`
+- `Nmea0183StreamParser`
+- `Nmea0183RxConnector`
+- NMEA TX formatter helpers
+
+Internal implementation headers are intentionally coarse-grained:
+
+```text
+src/nmea0183_connector/nmea0183_helpers.hpp
+src/nmea0183_connector/sentence_parser.hpp
+src/nmea0183_connector/nmea_rx_connector.hpp
+src/nmea0183_connector/nmea_tx_connector.hpp
+src/nmea0183_connector.hpp
+```
+
+Applications, examples, and tests should include only:
+
+```cpp
+#include <nmea0183_connector.hpp>
+```
+
+## Parser model
+
+`NmeaSentence` stores one raw sentence buffer. Body, talker, sentence id, and fields are `NmeaSpan` pointer/length views into that raw buffer. Tokenization does not copy the body and does not write temporary null terminators into fields. Numeric parsing uses a small local temporary only when converting a span to a number.
+
+Use `sentence_is(sentence, "RMC")` to match the three-letter NMEA sentence id.
+
+All supported input sentences are applied through `Nmea0183RxConnector::apply_sentence()`.
 
 ## Build on Linux
 
@@ -62,6 +77,18 @@ For local CMake builds, default is:
 cmake -S . -B build
 cmake --build build --parallel
 ctest --test-dir build --output-on-failure
+```
+
+## Arduino example
+
+```bash
+arduino-cli compile --fqbn arduino:avr:mega --libraries . examples/arduino/Nmea0183ConnectorExample
+```
+
+The Arduino library metadata advertises the same public include:
+
+```cpp
+#include <nmea0183_connector.hpp>
 ```
 
 ## Supported input
@@ -106,4 +133,4 @@ make_ap_rmc                    -> APRMC / GPRMC-compatible RMC output
 
 ## License
 
-GPL-3.0-or-later.
+Apache-2.0.
