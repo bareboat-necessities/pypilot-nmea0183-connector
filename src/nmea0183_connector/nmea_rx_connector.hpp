@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string.h>
-#include <pypilot_data_model.hpp>
+#include <ship_data_model.hpp>
 #include "sentence_parser.hpp"
 
 namespace nmea0183_connector {
@@ -43,19 +43,19 @@ inline bool parse_rmc_timestamp_s(NmeaSpan utc_time, NmeaSpan date_ddmmyy, float
 template<typename Real = float>
 class Nmea0183RxConnector {
 public:
-    Nmea0183RxConnector() : last_error_(""), last_apb_mode_(pypilot_data_model::AutopilotMode::gps) {
+    Nmea0183RxConnector() : last_error_(""), last_apb_mode_(ship_data_model::AutopilotMode::gps) {
         last_apb_sender_id_[0] = last_apb_sender_id_[1] = last_apb_sender_id_[2] = '\0';
     }
 
     const char* last_error() const { return last_error_; }
-    pypilot_data_model::AutopilotMode last_apb_mode() const { return last_apb_mode_; }
+    ship_data_model::AutopilotMode last_apb_mode() const { return last_apb_mode_; }
     const char* last_apb_sender_id() const { return last_apb_sender_id_; }
 
-    bool apply_sentence(const NmeaSentence& s, pypilot_data_model::DataModel<Real>& model, uint64_t now_us) {
-        return apply_sentence(s, model, now_us, pypilot_data_model::SensorSource::none);
+    bool apply_sentence(const NmeaSentence& s, ship_data_model::DataModel<Real>& model, uint64_t now_us) {
+        return apply_sentence(s, model, now_us, ship_data_model::SensorSource::none);
     }
 
-    bool apply_sentence(const NmeaSentence& s, pypilot_data_model::DataModel<Real>& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_sentence(const NmeaSentence& s, ship_data_model::DataModel<Real>& model, uint64_t now_us, ship_data_model::SensorSource source) {
         last_error_ = "";
         if (!s.valid_checksum) { last_error_ = "invalid checksum"; return false; }
         if (sentence_is(s, "RMC")) return apply_rmc(s, model, now_us, source);
@@ -85,16 +85,16 @@ public:
 
 private:
     const char* last_error_;
-    pypilot_data_model::AutopilotMode last_apb_mode_;
+    ship_data_model::AutopilotMode last_apb_mode_;
     char last_apb_sender_id_[3];
 
     template<typename Setting>
-    void set_source(Setting& setting, pypilot_data_model::SensorSource source) {
-        if (source != pypilot_data_model::SensorSource::none) setting.value = source;
+    void set_source(Setting& setting, ship_data_model::SensorSource source) {
+        if (source != ship_data_model::SensorSource::none) setting.value = source;
     }
 
     template<typename Model>
-    bool apply_rmc(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_rmc(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         if (s.field_count < 8 || s.field(1)[0] != 'A') { last_error_ = "invalid RMC"; return false; }
         float lat = 0, lon = 0, speed = 0, track = 0, timestamp = 0;
         if (parse_lat_lon(s.field(2), s.field(3), lat)) model.navigation.gps.fix_lat_deg.set(static_cast<Real>(lat), now_us);
@@ -112,7 +112,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_gga(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_gga(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         if (s.field_count < 9 || s.field(5)[0] == '0') { last_error_ = "invalid GGA"; return false; }
         float lat = 0, lon = 0, alt = 0;
         if (parse_lat_lon(s.field(1), s.field(2), lat)) model.navigation.gps.fix_lat_deg.set(static_cast<Real>(lat), now_us);
@@ -124,7 +124,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_gll(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_gll(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         if (s.field_count < 6 || s.field(5)[0] != 'A') { last_error_ = "bad GLL"; return false; }
         float lat = 0, lon = 0;
         if (parse_lat_lon(s.field(0), s.field(1), lat)) model.navigation.gps.fix_lat_deg.set(static_cast<Real>(lat), now_us);
@@ -135,7 +135,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_vtg(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_vtg(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         if (s.field_count < 7) { last_error_ = "short VTG"; return false; }
         float track = 0, speed = 0;
         if (parse_real(s.field(0), track)) model.navigation.gps.track_deg.set(static_cast<Real>(wrap_360_deg(track)), now_us);
@@ -163,7 +163,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_mwv(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_mwv(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         if (s.field_count < 5 || s.field(4)[0] != 'A') { last_error_ = "invalid MWV"; return false; }
         float angle = 0, speed = 0;
         if (!parse_real(s.field(0), angle) || !parse_knots(s.field(2), s.field(3), speed)) { last_error_ = "bad MWV"; return false; }
@@ -172,7 +172,7 @@ private:
     }
 
     template<typename Wind>
-    bool set_wind(Wind& wind, float angle, float speed, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool set_wind(Wind& wind, float angle, float speed, uint64_t now_us, ship_data_model::SensorSource source) {
         wind.direction_deg.set(wrap_180_deg(angle), now_us);
         wind.speed_kn.set(speed, now_us);
         set_source(wind.source, source);
@@ -181,7 +181,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_mwd(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_mwd(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         float direction = 0, speed = 0;
         if (s.field_count < 7 || !parse_real(s.field(0), direction) || !parse_knots(s.field(4), s.field(5), speed)) { last_error_ = "bad MWD"; return false; }
         model.wind.truewind.direction_deg.set(static_cast<Real>(wrap_180_deg(direction)), now_us);
@@ -192,7 +192,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_vwr(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source, bool true_wind) {
+    bool apply_vwr(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source, bool true_wind) {
         float angle = 0, speed = 0;
         if (!parse_left_right_signed(s.field(0), s.field(1), angle) || !parse_knots(s.field(2), s.field(3), speed)) { last_error_ = true_wind ? "bad VWT" : "bad VWR"; return false; }
         if (true_wind) return set_wind(model.wind.truewind, angle, speed, now_us, source);
@@ -200,7 +200,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_vhw(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_vhw(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         float speed = 0;
         if (!parse_knots(s.field(4), s.field(5), speed)) { last_error_ = "bad VHW"; return false; }
         model.water.speed_kn.set(static_cast<Real>(speed), now_us);
@@ -210,7 +210,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_lwy(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_lwy(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         float leeway = 0;
         if (s.field_count < 2 || s.field(0)[0] != 'A' || !parse_real(s.field(1), leeway)) { last_error_ = "bad LWY"; return false; }
         model.water.leeway_deg.set(static_cast<Real>(leeway), now_us);
@@ -220,7 +220,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_dbt(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_dbt(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         float depth = 0;
         if (s.field_count >= 4 && parse_real(s.field(2), depth)) {
             model.water.depth_m.set(static_cast<Real>(depth), now_us);
@@ -233,7 +233,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_dpt(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_dpt(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         float depth = 0, offset = 0;
         if (!parse_real(s.field(0), depth)) { last_error_ = "bad DPT"; return false; }
         model.water.depth_m.set(static_cast<Real>(depth), now_us);
@@ -244,7 +244,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_rsa(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_rsa(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         float angle = 0;
         if (s.field_count >= 2 && s.field(1)[0] == 'A' && parse_real(s.field(0), angle)) {
             model.rudder.angle_deg.set(static_cast<Real>(-angle), now_us);
@@ -257,7 +257,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_xte(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_xte(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         float xte = 0;
         if (s.field_count < 5 || s.field(0)[0] != 'A' || s.field(1)[0] != 'A' || !parse_left_right_signed(s.field(2), s.field(3), xte)) { last_error_ = "bad XTE"; return false; }
         model.navigation.apb.xte_nmi.set(static_cast<Real>(xte), now_us);
@@ -267,7 +267,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_apb(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_apb(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         if (s.field_count < 14) { last_error_ = "short APB"; return false; }
         bool any = false;
         float xte = 0, track = 0;
@@ -281,7 +281,7 @@ private:
             model.navigation.apb.track_deg.set(static_cast<Real>(wrap_360_deg(track)), now_us);
             any = true;
         }
-        last_apb_mode_ = s.field(13)[0] == 'M' ? pypilot_data_model::AutopilotMode::compass : pypilot_data_model::AutopilotMode::gps;
+        last_apb_mode_ = s.field(13)[0] == 'M' ? ship_data_model::AutopilotMode::compass : ship_data_model::AutopilotMode::gps;
         model.navigation.apb.mode_hint.value = last_apb_mode_;
         last_apb_sender_id_[0] = s.talker[0];
         last_apb_sender_id_[1] = s.talker[1];
@@ -296,7 +296,7 @@ private:
     }
 
     template<typename Model>
-    bool apply_rmb(const NmeaSentence& s, Model& model, uint64_t now_us, pypilot_data_model::SensorSource source) {
+    bool apply_rmb(const NmeaSentence& s, Model& model, uint64_t now_us, ship_data_model::SensorSource source) {
         if (s.field_count < 13 || s.field(0)[0] != 'A') { last_error_ = "bad RMB"; return false; }
         float xte = 0, lat = 0, lon = 0, range = 0, bearing = 0, vmg = 0;
         if (parse_left_right_signed(s.field(1), s.field(2), xte)) {
