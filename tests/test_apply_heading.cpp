@@ -1,10 +1,10 @@
 #include <cassert>
 #include <cmath>
 #include <nmea0183_connector.hpp>
-#include <pypilot_data_model.hpp>
+#include <ship_data_model.hpp>
 
 using namespace nmea0183_connector;
-using namespace pypilot_data_model;
+using namespace ship_data_model;
 
 static bool parse(const char* line, NmeaSentence& s) {
     Nmea0183StreamParser p;
